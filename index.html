@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Morgenrapport – Correct Bygg</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1a18; --ink2: #3d3d39; --ink3: #7a7a74; --ink4: #b0b0a8;
+    --paper: #f5f3ee; --paper2: #ede9e0; --paper3: #e4dfd3;
+    --accent: #c8421a; --gold: #b5882a; --gold2: #f0d48a;
+    --teal: #1a6b5a; --teal2: #d0ede7;
+    --amber: #9b6000; --amber2: #fdeec8;
+    --red: #9b2020; --red2: #fde0d0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(--ink); min-height: 100vh; position: relative; overflow-x: hidden; }
+  body::before { content: ''; position: fixed; inset: 0; background: radial-gradient(ellipse 80% 50% at 15% 10%, rgba(200,66,26,.06) 0%, transparent 60%), radial-gradient(ellipse 60% 40% at 85% 80%, rgba(26,107,90,.05) 0%, transparent 60%); pointer-events: none; z-index: 0; }
+  .grain { position: fixed; inset: 0; opacity: .018; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); background-size: 128px; pointer-events: none; z-index: 1; }
+  .page { position: relative; z-index: 2; max-width: 1100px; margin: 0 auto; padding: 48px 32px 80px; }
+
+  .header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 32px; opacity: 0; animation: rise .6s .1s ease forwards; }
+  .logo-mark { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .logo-icon { width: 32px; height: 32px; background: var(--accent); border-radius: 4px; display: flex; align-items: center; justify-content: center; }
+  .logo-icon svg { width: 18px; height: 18px; }
+  .logo-name { font-size: 13px; font-weight: 500; color: var(--ink3); letter-spacing: .06em; text-transform: uppercase; }
+  .greeting { font-family: 'DM Serif Display', serif; font-size: clamp(26px, 3.5vw, 40px); line-height: 1.15; margin-bottom: 5px; }
+  .greeting em { font-style: italic; color: var(--accent); }
+  .subgreeting { font-size: 14px; color: var(--ink3); font-weight: 300; }
+  .header-right { text-align: right; flex-shrink: 0; padding-top: 4px; }
+  .date-display { font-family: 'DM Serif Display', serif; font-size: 15px; color: var(--ink2); margin-bottom: 4px; }
+  .time-display { font-size: 28px; font-weight: 300; color: var(--ink); letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+  .refresh-btn { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: transparent; border: 1px solid var(--paper3); border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; color: var(--ink3); cursor: pointer; transition: border-color .15s, color .15s, background .15s; margin-left: 10px; vertical-align: middle; }
+  .refresh-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(200,66,26,.04); }
+  .refresh-btn svg { width: 14px; height: 14px; }
+  .refresh-btn.spinning svg { animation: spin .7s linear infinite; }
+  .last-updated { font-size: 11px; color: var(--ink4); }
+  .update-pill { display: inline-flex; align-items: center; gap: 6px; background: var(--teal2); color: var(--teal); font-size: 11px; font-weight: 500; padding: 3px 9px; border-radius: 20px; margin-left: 8px; opacity: 0; transition: opacity .3s; }
+  .update-pill.visible { opacity: 1; }
+  .update-pill .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--teal); }
+  .rule { border: none; border-top: 1px solid var(--paper3); margin-bottom: 28px; opacity: 0; animation: rise .5s .2s ease forwards; }
+
+  /* PROJECT FILTER TABS */
+  .project-filter { display: flex; align-items: center; gap: 8px; margin-bottom: 28px; flex-wrap: wrap; opacity: 0; animation: rise .5s .25s ease forwards; }
+  .filter-label { font-size: 11px; font-weight: 500; color: var(--ink4); letter-spacing: .06em; text-transform: uppercase; margin-right: 4px; white-space: nowrap; }
+  .proj-tab { display: inline-flex; align-items: center; gap: 7px; padding: 7px 14px; border-radius: 30px; border: 1px solid var(--paper3); background: #fff; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; color: var(--ink3); cursor: pointer; transition: all .15s; white-space: nowrap; }
+  .proj-tab:hover { border-color: var(--ink3); color: var(--ink2); }
+  .proj-tab.active { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .proj-tab .proj-count { font-size: 10px; font-weight: 500; padding: 2px 6px; border-radius: 10px; }
+  .proj-tab.active .proj-count { background: rgba(255,255,255,.2); color: #fff; }
+  .proj-tab:not(.active) .proj-count { background: var(--paper2); color: var(--ink3); }
+  .proj-tab .proj-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ALERT */
+  .alert-banner { background: var(--red2); border: 1px solid rgba(155,32,32,.15); border-left: 3px solid var(--red); border-radius: 8px; padding: 13px 18px; display: flex; align-items: center; gap: 12px; margin-bottom: 28px; opacity: 0; animation: rise .5s .3s ease forwards; }
+  .alert-banner.hidden { display: none; }
+  .alert-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--red); flex-shrink: 0; animation: pulse 2s ease infinite; }
+  .alert-text { font-size: 13px; color: var(--red); font-weight: 500; }
+  .alert-text span { font-weight: 300; color: #7a3030; margin-left: 6px; }
+
+  .grid-main { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+  .grid-bottom { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+  .card { background: #fff; border: 1px solid var(--paper3); border-radius: 12px; padding: 22px 24px; opacity: 0; }
+  .card:nth-child(1) { animation: rise .5s .35s ease forwards; }
+  .card:nth-child(2) { animation: rise .5s .45s ease forwards; }
+  .card:nth-child(3) { animation: rise .5s .55s ease forwards; }
+  .grid-bottom .card:nth-child(1) { animation: rise .5s .65s ease forwards; }
+  .grid-bottom .card:nth-child(2) { animation: rise .5s .75s ease forwards; }
+  .card-label { font-size: 11px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--ink4); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .card-label::after { content: ''; flex: 1; height: 1px; background: var(--paper3); }
+
+  /* FILTERABLE */
+  [data-proj] { transition: opacity .2s, max-height .25s ease, margin .2s, padding .2s; overflow: hidden; }
+  [data-proj].hidden { opacity: 0; max-height: 0 !important; margin-top: 0 !important; margin-bottom: 0 !important; padding-top: 0 !important; padding-bottom: 0 !important; border: none !important; pointer-events: none; }
+
+  .empty-state { font-size: 13px; color: var(--ink4); text-align: center; padding: 16px 0; display: none; font-style: italic; }
+  .empty-state.show { display: block; }
+
+  /* URGENT */
+  .urgent-item { padding: 12px 0; border-bottom: 1px solid var(--paper2); display: flex; gap: 12px; align-items: flex-start; max-height: 120px; }
+  .urgent-item:last-of-type { border-bottom: none; }
+  .urgency-badge { flex-shrink: 0; font-size: 10px; font-weight: 500; padding: 3px 8px; border-radius: 20px; margin-top: 2px; white-space: nowrap; }
+  .badge-red { background: var(--red2); color: var(--red); }
+  .badge-amber { background: var(--amber2); color: var(--amber); }
+  .badge-teal { background: var(--teal2); color: var(--teal); }
+  .urgent-title { font-size: 13px; font-weight: 500; color: var(--ink); margin-bottom: 3px; line-height: 1.4; }
+  .urgent-sub { font-size: 12px; color: var(--ink3); line-height: 1.5; }
+  .ptag { display: inline-block; font-size: 10px; font-weight: 500; padding: 1px 7px; border-radius: 10px; margin-top: 4px; }
+
+  /* TILVALG */
+  .tilvalg-item { padding: 10px 0; border-bottom: 1px solid var(--paper2); max-height: 80px; }
+  .tilvalg-item:last-of-type { border-bottom: none; }
+  .trow { display: flex; justify-content: space-between; align-items: baseline; }
+  .tilvalg-name { font-size: 13px; color: var(--ink); }
+  .tilvalg-amount { font-size: 14px; font-weight: 500; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .tilvalg-who { font-size: 11px; color: var(--ink3); margin-top: 2px; }
+  .s-open { font-size: 11px; font-weight: 500; color: var(--amber); }
+  .s-ok { font-size: 11px; font-weight: 500; color: var(--teal); }
+
+  /* PROGRESS */
+  .big-stat { margin-bottom: 18px; }
+  .big-num { font-family: 'DM Serif Display', serif; font-size: 44px; color: var(--ink); line-height: 1; margin-bottom: 4px; }
+  .big-num sup { font-size: 20px; vertical-align: super; color: var(--ink3); }
+  .big-label { font-size: 12px; color: var(--ink3); }
+  .progress-item { margin-bottom: 16px; max-height: 80px; }
+  .progress-item:last-of-type { margin-bottom: 0; }
+  .ph { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 7px; }
+  .pname { font-size: 13px; font-weight: 500; color: var(--ink); }
+  .ppct { font-size: 12px; color: var(--ink3); }
+  .progress-track { height: 4px; background: var(--paper2); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 2px; background: var(--accent); transform-origin: left; transform: scaleX(0); transition: transform 1s .8s cubic-bezier(.4,0,.2,1); }
+  .progress-fill.teal { background: var(--teal); }
+  .progress-fill.gold { background: var(--gold); }
+  .progress-fill.purple { background: #7f77dd; }
+  .pmeta { font-size: 11px; color: var(--ink4); margin-top: 5px; }
+  .mini-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--paper2); }
+  .mini-num { font-size: 20px; font-weight: 500; color: var(--ink); }
+  .mini-label { font-size: 11px; color: var(--ink3); margin-top: 2px; }
+
+  /* TIMER BUDSJETT */
+  .hours-block { margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--paper2); }
+  .hours-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+  .hours-label { font-size: 13px; font-weight: 500; color: var(--ink); }
+  .hours-nums { font-size: 12px; color: var(--ink3); font-variant-numeric: tabular-nums; }
+  .hours-track { height: 6px; background: var(--paper2); border-radius: 3px; overflow: hidden; margin-bottom: 6px; }
+  .hours-fill { height: 100%; border-radius: 3px; background: var(--accent); transform-origin: left; transform: scaleX(0); transition: transform 1.1s .9s cubic-bezier(.4,0,.2,1); }
+  .hours-fill.ok { background: var(--teal); }
+  .hours-fill.warn { background: var(--amber); }
+  .hours-fill.over { background: var(--red); }
+  .hours-detail { display: flex; justify-content: space-between; }
+  .hours-detail span { font-size: 11px; color: var(--ink4); }
+  .hours-detail strong { font-size: 11px; font-weight: 500; }
+  .hours-detail .remaining { color: var(--teal); }
+  .hours-detail .remaining.warn { color: var(--amber); }
+
+  /* RISIKO + MILEPÆL + KUNDE + VÆR */
+  .risk-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .risk-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .risk-green { background: #3B6D11; }
+  .risk-amber { background: var(--amber); }
+  .risk-red { background: var(--red); animation: pulse 2s ease infinite; }
+  .risk-label { font-size: 12px; color: var(--ink2); font-weight: 500; }
+  .risk-sub { font-size: 11px; color: var(--ink3); margin-left: 17px; margin-bottom: 10px; line-height: 1.5; }
+
+  .info-row { display: flex; align-items: flex-start; gap: 10px; padding: 9px 12px; background: var(--paper); border-radius: 8px; margin-bottom: 8px; }
+  .info-icon { font-size: 13px; flex-shrink: 0; margin-top: 1px; }
+  .info-main { flex: 1; min-width: 0; }
+  .info-title { font-size: 12px; font-weight: 500; color: var(--ink2); margin-bottom: 2px; }
+  .info-sub { font-size: 11px; color: var(--ink3); line-height: 1.5; }
+
+  .weather-row { display: flex; gap: 8px; margin-top: 4px; }
+  .weather-day { flex: 1; background: var(--paper); border-radius: 8px; padding: 8px 6px; text-align: center; }
+  .weather-day-label { font-size: 10px; color: var(--ink4); margin-bottom: 4px; }
+  .weather-icon { font-size: 18px; line-height: 1; margin-bottom: 3px; }
+  .weather-temp { font-size: 12px; font-weight: 500; color: var(--ink2); }
+  .weather-desc { font-size: 10px; color: var(--ink3); margin-top: 1px; }
+
+  /* EMAILS */
+  .email-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .email-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--paper); border-radius: 8px; max-height: 70px; }
+  .edot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .emain { flex: 1; min-width: 0; }
+  .etitle { font-size: 13px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .esub { font-size: 11px; color: var(--ink3); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* INNKJØP ROWS */
+  .irow { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 8px; max-height: 70px; margin-bottom: 8px; }
+  .irow:last-of-type { margin-bottom: 0; }
+
+  /* ACTIONS */
+  .action-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--paper); border-radius: 8px; cursor: pointer; max-height: 60px; transition: background .15s, opacity .2s; }
+  .action-item:hover { background: var(--paper2); }
+  .achk { width: 18px; height: 18px; border-radius: 4px; flex-shrink: 0; margin-top: 1px; transition: background .15s, border .15s; }
+  .atxt { font-size: 12px; color: var(--ink); line-height: 1.5; transition: color .15s, text-decoration .15s; }
+
+  /* TOTAL ROW */
+  .total-row { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--paper2); display: flex; justify-content: space-between; align-items: baseline; }
+
+  /* REFRESH OVERLAY */
+  .refresh-overlay { position: fixed; inset: 0; background: rgba(245,243,238,.75); z-index: 100; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity .2s; }
+  .refresh-overlay.visible { opacity: 1; pointer-events: all; }
+  .rbox { background: #fff; border: 1px solid var(--paper3); border-radius: 12px; padding: 28px 36px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+  .rspin { width: 26px; height: 26px; border: 2px solid var(--paper3); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; }
+  .rlabel { font-size: 14px; font-weight: 500; color: var(--ink2); }
+  .rsub { font-size: 12px; color: var(--ink3); }
+
+  /* FAKTURA-SEKSJON */
+  .faktura-section { margin-top: 20px; }
+  .faktura-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .faktura-table th { font-size: 11px; font-weight: 500; color: var(--ink4); letter-spacing: .06em; text-transform: uppercase; padding: 0 12px 10px 0; text-align: left; border-bottom: 1px solid var(--paper3); }
+  .faktura-table th:last-child { text-align: right; padding-right: 0; }
+  .faktura-table td { padding: 11px 12px 11px 0; border-bottom: 1px solid var(--paper2); vertical-align: middle; color: var(--ink); line-height: 1.4; }
+  .faktura-table td:last-child { text-align: right; padding-right: 0; font-variant-numeric: tabular-nums; font-weight: 500; }
+  .faktura-table tr:last-child td { border-bottom: none; }
+  .faktura-table tr.hidden td { display: none; }
+  .ftype { display: inline-block; font-size: 10px; font-weight: 500; padding: 2px 7px; border-radius: 10px; margin-bottom: 3px; }
+  .ftype-tilvalg { background: var(--amber2); color: var(--amber); }
+  .ftype-timer { background: var(--teal2); color: var(--teal); }
+  .ftype-material { background: #EEEDFE; color: #534AB7; }
+  .fname { font-size: 13px; color: var(--ink); }
+  .fsub { font-size: 11px; color: var(--ink3); margin-top: 2px; }
+  .faktura-sum-row { display: flex; justify-content: space-between; align-items: baseline; margin-top: 14px; padding-top: 12px; border-top: 2px solid var(--ink); }
+  .faktura-sum-label { font-size: 13px; color: var(--ink2); font-weight: 500; }
+  .faktura-sum-amount { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--ink); }
+
+  /* E-POST KNAPP OG MODAL */
+  .epost-btn { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 6px; border: 1px solid var(--paper3); background: #fff; font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 500; color: var(--ink3); cursor: pointer; transition: all .15s; white-space: nowrap; flex-shrink: 0; margin-left: auto; }
+  .epost-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(200,66,26,.04); }
+  .epost-btn svg { width: 11px; height: 11px; }
+
+  .email-modal-bg { position: fixed; inset: 0; background: rgba(26,26,24,.45); z-index: 200; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity .2s; }
+  .email-modal-bg.open { opacity: 1; pointer-events: all; }
+  .email-modal { background: #fff; border-radius: 14px; width: min(640px, 92vw); max-height: 88vh; display: flex; flex-direction: column; overflow: hidden; transform: translateY(12px); transition: transform .2s; }
+  .email-modal-bg.open .email-modal { transform: translateY(0); }
+  .email-modal-head { padding: 20px 24px 16px; border-bottom: 1px solid var(--paper3); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  .email-modal-title { font-size: 15px; font-weight: 500; color: var(--ink); }
+  .email-modal-sub { font-size: 12px; color: var(--ink3); margin-top: 2px; }
+  .email-modal-close { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--paper3); background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--ink3); font-size: 16px; line-height: 1; transition: background .15s; }
+  .email-modal-close:hover { background: var(--paper2); }
+  .email-modal-body { padding: 20px 24px; overflow-y: auto; flex: 1; }
+  .email-modal-foot { padding: 16px 24px; border-top: 1px solid var(--paper3); display: flex; gap: 10px; justify-content: flex-end; flex-shrink: 0; }
+
+  .email-field { margin-bottom: 14px; }
+  .email-field label { display: block; font-size: 11px; font-weight: 500; color: var(--ink3); letter-spacing: .05em; text-transform: uppercase; margin-bottom: 6px; }
+  .email-field input { width: 100%; padding: 9px 12px; border: 1px solid var(--paper3); border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--ink); background: var(--paper); outline: none; transition: border-color .15s; }
+  .email-field input:focus { border-color: var(--ink3); background: #fff; }
+  .email-body-area { width: 100%; min-height: 200px; padding: 12px; border: 1px solid var(--paper3); border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--ink); background: var(--paper); outline: none; resize: vertical; line-height: 1.7; transition: border-color .15s; }
+  .email-body-area:focus { border-color: var(--ink3); background: #fff; }
+
+  .generating-row { display: flex; align-items: center; gap: 10px; padding: 14px; background: var(--paper); border-radius: 8px; margin-bottom: 14px; }
+  .generating-spinner { width: 16px; height: 16px; border: 2px solid var(--paper3); border-top-color: var(--accent); border-radius: 50%; animation: spin .6s linear infinite; flex-shrink: 0; }
+  .generating-text { font-size: 13px; color: var(--ink3); }
+
+  .btn-primary { padding: 9px 20px; background: var(--ink); border: none; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; color: #fff; cursor: pointer; transition: opacity .15s; }
+  .btn-primary:hover { opacity: .85; }
+  .btn-secondary { padding: 9px 16px; background: transparent; border: 1px solid var(--paper3); border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--ink3); cursor: pointer; transition: background .15s; }
+  .btn-secondary:hover { background: var(--paper2); }
+
+  .footer { margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--paper3); display: flex; justify-content: space-between; align-items: center; opacity: 0; animation: rise .5s .85s ease forwards; }
+  .footer-left, .footer-right { font-size: 12px; color: var(--ink4); }
+
+  @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: .5; transform: scale(1.3); } }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+  @media (max-width: 820px) {
+    .grid-main { grid-template-columns: 1fr; }
+    .grid-bottom { grid-template-columns: 1fr; }
+    .page { padding: 32px 16px 60px; }
+    .email-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="grain"></div>
+
+<div class="refresh-overlay" id="refresh-overlay">
+  <div class="rbox">
+    <div class="rspin"></div>
+    <div class="rlabel">Henter ny data...</div>
+    <div class="rsub" id="refresh-status">Leser e-poster fra siste time</div>
+  </div>
+</div>
+
+<div class="page">
+
+  <header class="header">
+    <div>
+      <div class="logo-mark">
+        <div class="logo-icon">
+          <svg viewBox="0 0 18 18" fill="none">
+            <rect x="2" y="10" width="4" height="6" fill="white" opacity=".9"/>
+            <rect x="7" y="6" width="4" height="10" fill="white" opacity=".7"/>
+            <rect x="12" y="2" width="4" height="14" fill="white" opacity=".5"/>
+          </svg>
+        </div>
+        <span class="logo-name">Correct Bygg</span>
+      </div>
+      <h1 class="greeting">God morgen, <em>Peter.</em></h1>
+      <p class="subgreeting">Her er det du trenger å vite før du starter dagen.</p>
+    </div>
+    <div class="header-right">
+      <div class="date-display" id="dato">Mandag 17. mars</div>
+      <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px">
+        <div class="time-display" id="klokke">07:14</div>
+        <button class="refresh-btn" id="refresh-btn" onclick="triggerRefresh()">
+          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M13 2v4H9"/><path d="M1 12V8h4"/>
+            <path d="M2.5 5a5.5 5.5 0 0 1 9.1-1.5L13 6M1 8l1.4 2.5A5.5 5.5 0 0 0 11.5 9"/>
+          </svg>
+          Oppdater
+        </button>
+      </div>
+      <div style="text-align:right;margin-top:5px;display:flex;align-items:center;justify-content:flex-end;gap:6px">
+        <span class="last-updated" id="last-updated">Sist oppdatert kl. 07:00</span>
+        <span class="update-pill" id="update-pill"><span class="dot"></span>Ny aktivitet</span>
+      </div>
+    </div>
+  </header>
+
+  <hr class="rule">
+
+  <!-- PROJECT FILTER TABS -->
+  <div class="project-filter">
+    <span class="filter-label">Prosjekt</span>
+    <button class="proj-tab active" onclick="setFilter('alle',this)">
+      <span>Alle prosjekter</span>
+      <span class="proj-count">4</span>
+    </button>
+    <button class="proj-tab" onclick="setFilter('lillehammer',this)">
+      <span class="proj-dot" style="background:#c8421a"></span>
+      <span>Lillehammer</span>
+      <span class="proj-count">5</span>
+    </button>
+    <button class="proj-tab" onclick="setFilter('gjovik',this)">
+      <span class="proj-dot" style="background:#1a6b5a"></span>
+      <span>Gjøvik</span>
+      <span class="proj-count">3</span>
+    </button>
+    <button class="proj-tab" onclick="setFilter('hamar',this)">
+      <span class="proj-dot" style="background:#b5882a"></span>
+      <span>Hamar</span>
+      <span class="proj-count">3</span>
+    </button>
+    <button class="proj-tab" onclick="setFilter('elverum',this)">
+      <span class="proj-dot" style="background:#7f77dd"></span>
+      <span>Elverum</span>
+      <span class="proj-count">2</span>
+    </button>
+  </div>
+
+  <!-- ALERT -->
+  <div class="alert-banner" id="alert-banner">
+    <div class="alert-dot"></div>
+    <div class="alert-text" id="alert-text">
+      1 kritisk frist i dag
+      <span>– Bekreft bestilling til Norsk Stål AS innen klokken 16:00 (Lillehammer)</span>
+    </div>
+  </div>
+
+  <div class="grid-main">
+
+    <!-- HASTER -->
+    <div class="card">
+      <div class="card-label">Haster nå</div>
+
+      <div class="urgent-item" data-proj="lillehammer">
+        <span class="urgency-badge badge-red">I dag</span>
+        <div>
+          <div class="urgent-title">Bekreft stålbjelker – Norsk Stål</div>
+          <div class="urgent-sub">Frist 20. mars · kr 187 400 · Levering 16. mai</div>
+          <span class="ptag" style="background:#fde0d0;color:#9b2020">Lillehammer</span>
+        </div>
+      </div>
+      <div class="urgent-item" data-proj="lillehammer">
+        <span class="urgency-badge badge-amber">Venter</span>
+        <div>
+          <div class="urgent-title">Svar Kari Haugen om tilvalg</div>
+          <div class="urgent-sub">Ubesvart siden 13. mars · kr 14 000</div>
+          <span class="ptag" style="background:#fde0d0;color:#9b2020">Lillehammer</span>
+        </div>
+      </div>
+      <div class="urgent-item" data-proj="lillehammer">
+        <span class="urgency-badge badge-amber">Blokkert</span>
+        <div>
+          <div class="urgent-title">Tegning 2. etg. fra arkitekt Strand</div>
+          <div class="urgent-sub">Thomas venter – isolasjon kan ikke starte</div>
+          <span class="ptag" style="background:#fde0d0;color:#9b2020">Lillehammer</span>
+        </div>
+      </div>
+      <div class="urgent-item" data-proj="gjovik">
+        <span class="urgency-badge badge-amber">Venter</span>
+        <div>
+          <div class="urgent-title">Sluttbefaring – Familie Bergstrom</div>
+          <div class="urgent-sub">Bookingbekreftelse ikke sendt ennå</div>
+          <span class="ptag" style="background:#d0ede7;color:#1a6b5a">Gjøvik</span>
+        </div>
+      </div>
+      <div class="urgent-item" data-proj="hamar">
+        <span class="urgency-badge badge-teal">I morgen</span>
+        <div>
+          <div class="urgent-title">Grunnarbeid – kontrollmåling</div>
+          <div class="urgent-sub">Tirsdag 18. mars · Koordinator kl. 09</div>
+          <span class="ptag" style="background:#f0d48a;color:#854f0b">Hamar</span>
+        </div>
+      </div>
+      <div class="urgent-item" data-proj="elverum">
+        <span class="urgency-badge badge-teal">Denne uka</span>
+        <div>
+          <div class="urgent-title">Kontraktsignering – Elverum kommune</div>
+          <div class="urgent-sub">Avtaleutkast klart – venter godkjenning</div>
+          <span class="ptag" style="background:#EEEDFE;color:#534AB7">Elverum</span>
+        </div>
+      </div>
+      <div class="empty-state" id="haster-empty">Ingen hastesaker for dette prosjektet.</div>
+    </div>
+
+    <!-- TILVALG -->
+    <div class="card">
+      <div class="card-label">Tilvalg – ikke fakturert</div>
+
+      <div class="tilvalg-item" data-proj="lillehammer" data-amount="14000">
+        <div class="trow"><div class="tilvalg-name">Ekstra benkeplate 120 cm</div><div class="tilvalg-amount">kr 14 000</div></div>
+        <div class="trow" style="margin-top:3px"><div class="tilvalg-who">Kari Haugen · <span class="ptag" style="background:#fde0d0;color:#9b2020">Lillehammer</span></div><div class="s-open">Ikke bekreftet</div></div>
+      </div>
+      <div class="tilvalg-item" data-proj="lillehammer" data-amount="0">
+        <div class="trow"><div class="tilvalg-name">Stikkontakt flyttes 20 cm</div><div class="tilvalg-amount">Pris åpen</div></div>
+        <div class="trow" style="margin-top:3px"><div class="tilvalg-who">Kari Haugen · <span class="ptag" style="background:#fde0d0;color:#9b2020">Lillehammer</span></div><div class="s-open">Avklar pris</div></div>
+      </div>
+      <div class="tilvalg-item" data-proj="gjovik" data-amount="8200">
+        <div class="trow"><div class="tilvalg-name">Ekstra downlights stue</div><div class="tilvalg-amount">kr 8 200</div></div>
+        <div class="trow" style="margin-top:3px"><div class="tilvalg-who">Familie Bergstrom · <span class="ptag" style="background:#d0ede7;color:#1a6b5a">Gjøvik</span></div><div class="s-ok">Bekreftet</div></div>
+      </div>
+      <div class="tilvalg-item" data-proj="hamar" data-amount="22500">
+        <div class="trow"><div class="tilvalg-name">Fliser bad – oppgradering</div><div class="tilvalg-amount">kr 22 500</div></div>
+        <div class="trow" style="margin-top:3px"><div class="tilvalg-who">Mona Dahl · <span class="ptag" style="background:#f0d48a;color:#854f0b">Hamar</span></div><div class="s-ok">Bekreftet</div></div>
+      </div>
+      <div class="tilvalg-item" data-proj="elverum" data-amount="35000">
+        <div class="trow"><div class="tilvalg-name">Utvidet garasje – 20 m²</div><div class="tilvalg-amount">kr 35 000</div></div>
+        <div class="trow" style="margin-top:3px"><div class="tilvalg-who">Elverum kommune · <span class="ptag" style="background:#EEEDFE;color:#534AB7">Elverum</span></div><div class="s-open">Ikke bekreftet</div></div>
+      </div>
+      <div class="empty-state" id="tilvalg-empty">Ingen åpne tilvalg for dette prosjektet.</div>
+      <div class="total-row">
+        <span style="font-size:12px;color:var(--ink3)">Totalt utestående</span>
+        <span id="total-amount" style="font-size:18px;font-weight:500;font-family:'DM Serif Display',serif">kr 79 700</span>
+      </div>
+    </div>
+
+    <!-- PROSJEKTSTATUS -->
+    <div class="card">
+      <div class="card-label">Aktive prosjekter</div>
+
+      <!-- Fremdrift prosjekter -->
+      <div class="progress-item" data-proj="lillehammer" style="margin-bottom:14px">
+        <div class="ph"><span class="pname">Lillehammer</span><span class="ppct">38 %</span></div>
+        <div class="progress-track"><div class="progress-fill" style="width:38%"></div></div>
+        <div class="pmeta">Grunnmur ferdig · Rørlegger 18. mars</div>
+      </div>
+      <div class="progress-item" data-proj="gjovik" style="margin-bottom:14px">
+        <div class="ph"><span class="pname">Gjøvik</span><span class="ppct">71 %</span></div>
+        <div class="progress-track"><div class="progress-fill teal" style="width:71%"></div></div>
+        <div class="pmeta">Innvendige arbeider · Overtakelse mai</div>
+      </div>
+      <div class="progress-item" data-proj="hamar" style="margin-bottom:14px">
+        <div class="ph"><span class="pname">Hamar</span><span class="ppct">15 %</span></div>
+        <div class="progress-track"><div class="progress-fill gold" style="width:15%"></div></div>
+        <div class="pmeta">Oppstart · Grunnarbeid pågår</div>
+      </div>
+      <div class="progress-item" data-proj="elverum" style="margin-bottom:14px">
+        <div class="ph"><span class="pname">Elverum</span><span class="ppct">5 %</span></div>
+        <div class="progress-track"><div class="progress-fill purple" style="width:5%"></div></div>
+        <div class="pmeta">Kontraktsignering · Oppstart april</div>
+      </div>
+
+      <!-- Timebudsjett per prosjekt -->
+      <div style="border-top:1px solid var(--paper2);padding-top:14px;margin-top:4px">
+        <div style="font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--ink4);margin-bottom:12px">Timebudsjett</div>
+
+        <div class="hours-block" data-proj="lillehammer">
+          <div class="hours-row">
+            <span class="hours-label">Lillehammer</span>
+            <span class="hours-nums"><span id="h-reg-lillehammer">38</span> / <span id="h-tot-lillehammer">100</span> timer</span>
+          </div>
+          <div class="hours-track"><div class="hours-fill ok" id="hbar-lillehammer" style="width:38%"></div></div>
+          <div class="hours-detail">
+            <span>Registrert: <strong>38 t</strong></span>
+            <span class="remaining" id="h-rem-lillehammer">62 t igjen</span>
+          </div>
+        </div>
+
+        <div class="hours-block" data-proj="gjovik">
+          <div class="hours-row">
+            <span class="hours-label">Gjøvik</span>
+            <span class="hours-nums"><span id="h-reg-gjovik">158</span> / <span id="h-tot-gjovik">200</span> timer</span>
+          </div>
+          <div class="hours-track"><div class="hours-fill warn" id="hbar-gjovik" style="width:79%"></div></div>
+          <div class="hours-detail">
+            <span>Registrert: <strong>158 t</strong></span>
+            <span class="remaining warn" id="h-rem-gjovik">42 t igjen</span>
+          </div>
+        </div>
+
+        <div class="hours-block" data-proj="hamar">
+          <div class="hours-row">
+            <span class="hours-label">Hamar</span>
+            <span class="hours-nums"><span id="h-reg-hamar">24</span> / <span id="h-tot-hamar">180</span> timer</span>
+          </div>
+          <div class="hours-track"><div class="hours-fill ok" id="hbar-hamar" style="width:13%"></div></div>
+          <div class="hours-detail">
+            <span>Registrert: <strong>24 t</strong></span>
+            <span class="remaining" id="h-rem-hamar">156 t igjen</span>
+          </div>
+        </div>
+
+        <div class="hours-block" data-proj="elverum" style="border-bottom:none;margin-bottom:0;padding-bottom:0">
+          <div class="hours-row">
+            <span class="hours-label">Elverum</span>
+            <span class="hours-nums"><span id="h-reg-elverum">8</span> / <span id="h-tot-elverum">220</span> timer</span>
+          </div>
+          <div class="hours-track"><div class="hours-fill ok" id="hbar-elverum" style="width:4%"></div></div>
+          <div class="hours-detail">
+            <span>Registrert: <strong>8 t</strong></span>
+            <span class="remaining" id="h-rem-elverum">212 t igjen</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Risiko, milepæl, kunder, vær -->
+      <div style="border-top:1px solid var(--paper2);padding-top:14px;margin-top:14px">
+        <div style="font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--ink4);margin-bottom:12px">Risiko</div>
+
+        <div data-proj="lillehammer">
+          <div class="risk-row"><div class="risk-dot risk-red"></div><span class="risk-label">Lillehammer – høy risiko</span></div>
+          <div class="risk-sub">Kritisk frist i dag. Tegning mangler. Kunde venter svar.</div>
+        </div>
+        <div data-proj="gjovik">
+          <div class="risk-row"><div class="risk-dot risk-amber"></div><span class="risk-label">Gjøvik – middels risiko</span></div>
+          <div class="risk-sub">Timebudsjett nærmer seg grensen (79 %). Befaring ikke booket.</div>
+        </div>
+        <div data-proj="hamar">
+          <div class="risk-row"><div class="risk-dot risk-green"></div><span class="risk-label">Hamar – lav risiko</span></div>
+          <div class="risk-sub">Tidlig fase, god margin. Kontrollmåling tirsdag.</div>
+        </div>
+        <div data-proj="elverum">
+          <div class="risk-row"><div class="risk-dot risk-green"></div><span class="risk-label">Elverum – lav risiko</span></div>
+          <div class="risk-sub">Oppstart ikke i gang. Kontrakt til godkjenning.</div>
+        </div>
+      </div>
+
+      <div style="border-top:1px solid var(--paper2);padding-top:14px;margin-top:14px">
+        <div style="font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--ink4);margin-bottom:10px">Neste milepæl</div>
+
+        <div class="info-row" data-proj="lillehammer">
+          <div class="info-icon">&#9873;</div>
+          <div class="info-main">
+            <div class="info-title">Tetting av bygg</div>
+            <div class="info-sub">Estimert 4. april · Avhenger av tegning og rørlegger</div>
+          </div>
+        </div>
+        <div class="info-row" data-proj="gjovik">
+          <div class="info-icon">&#9873;</div>
+          <div class="info-main">
+            <div class="info-title">Sluttbefaring og overtakelse</div>
+            <div class="info-sub">Estimert 28. mars · Befaring ikke booket ennå</div>
+          </div>
+        </div>
+        <div class="info-row" data-proj="hamar">
+          <div class="info-icon">&#9873;</div>
+          <div class="info-main">
+            <div class="info-title">Støping av dekke 1. etg.</div>
+            <div class="info-sub">Estimert 10. april · Grunnarbeid pågår</div>
+          </div>
+        </div>
+        <div class="info-row" data-proj="elverum">
+          <div class="info-icon">&#9873;</div>
+          <div class="info-main">
+            <div class="info-title">Kontraktsignering</div>
+            <div class="info-sub">Denne uken · Venter på Elverum kommunes godkjenning</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="border-top:1px solid var(--paper2);padding-top:14px;margin-top:14px">
+        <div style="font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--ink4);margin-bottom:10px">Kundeaktivitet</div>
+
+        <div class="info-row" data-proj="lillehammer">
+          <div class="info-icon">&#9993;</div>
+          <div class="info-main">
+            <div class="info-title">Kari Haugen</div>
+            <div class="info-sub">Siste kontakt: 13. mars · <span style="color:var(--red);font-weight:500">Ballen ligger hos deg</span></div>
+          </div>
+        </div>
+        <div class="info-row" data-proj="gjovik">
+          <div class="info-icon">&#9993;</div>
+          <div class="info-main">
+            <div class="info-title">Familie Bergstrom</div>
+            <div class="info-sub">Siste kontakt: 14. mars · <span style="color:var(--red);font-weight:500">Ballen ligger hos deg</span></div>
+          </div>
+        </div>
+        <div class="info-row" data-proj="hamar">
+          <div class="info-icon">&#9993;</div>
+          <div class="info-main">
+            <div class="info-title">Mona Dahl</div>
+            <div class="info-sub">Siste kontakt: 14. mars · <span style="color:var(--teal);font-weight:500">Kunden svarer</span></div>
+          </div>
+        </div>
+        <div class="info-row" data-proj="elverum">
+          <div class="info-icon">&#9993;</div>
+          <div class="info-main">
+            <div class="info-title">Elverum kommune</div>
+            <div class="info-sub">Siste kontakt: 14. mars · <span style="color:var(--amber);font-weight:500">Venter på intern godkjenning</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="border-top:1px solid var(--paper2);padding-top:14px;margin-top:14px">
+        <div style="font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--ink4);margin-bottom:10px">Vær – Lillehammer neste 3 dager</div>
+        <div class="weather-row">
+          <div class="weather-day">
+            <div class="weather-day-label">Man</div>
+            <div class="weather-icon">&#9925;</div>
+            <div class="weather-temp">4 °C</div>
+            <div class="weather-desc">Lettskyet</div>
+          </div>
+          <div class="weather-day">
+            <div class="weather-day-label">Tir</div>
+            <div class="weather-icon">&#127783;</div>
+            <div class="weather-temp">2 °C</div>
+            <div class="weather-desc">Overskyet</div>
+          </div>
+          <div class="weather-day">
+            <div class="weather-day-label">Ons</div>
+            <div class="weather-icon">&#127781;</div>
+            <div class="weather-temp">-1 °C</div>
+            <div class="weather-desc">Snøbyger</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- GRID NEDRE -->
+  <div class="grid-bottom">
+
+    <div class="card">
+      <div class="card-label">Ny kommunikasjon siste 24 timer</div>
+      <div class="email-grid">
+        <div class="email-item" data-proj="lillehammer">
+          <div class="edot" style="background:var(--red)"></div>
+          <div class="emain"><div class="etitle">Norsk Stål AS</div><div class="esub">Leveransebekreftelse – svar påkrevd</div></div>
+          <div style="font-size:10px;padding:3px 7px;border-radius:20px;background:var(--red2);color:var(--red);font-weight:500;white-space:nowrap;flex-shrink:0">Haster</div>
+        </div>
+        <div class="email-item" data-proj="lillehammer">
+          <div class="edot" style="background:var(--amber)"></div>
+          <div class="emain"><div class="etitle">Kari Haugen</div><div class="esub">Tilvalg kjøkken – venter bekreftelse</div></div>
+          <div style="font-size:10px;padding:3px 7px;border-radius:20px;background:var(--amber2);color:var(--amber);font-weight:500;white-space:nowrap;flex-shrink:0">2 dager</div>
+        </div>
+        <div class="email-item" data-proj="lillehammer">
+          <div class="edot" style="background:var(--teal)"></div>
+          <div class="emain"><div class="etitle">Thomas Olsen</div><div class="esub">Timeregistrering uke 10 – 38,5 t</div></div>
+          <div style="font-size:10px;padding:3px 7px;border-radius:20px;background:var(--teal2);color:var(--teal);font-weight:500;white-space:nowrap;flex-shrink:0">Lest</div>
+        </div>
+        <div class="email-item" data-proj="lillehammer">
+          <div class="edot" style="background:var(--ink4)"></div>
+          <div class="emain"><div class="etitle">Rørlegger Johansen</div><div class="esub">Bekreftet ankomst 18. mars kl. 08</div></div>
+          <div style="font-size:10px;padding:3px 7px;border-radius:20px;background:var(--paper2);color:var(--ink3);font-weight:500;white-space:nowrap;flex-shrink:0">Lest</div>
+        </div>
+        <div class="email-item" data-proj="gjovik">
+          <div class="edot" style="background:var(--teal)"></div>
+          <div class="emain"><div class="etitle">Familie Bergstrom</div><div class="esub">Ønsker sluttbefaring 28. mars</div></div>
+          <div style="font-size:10px;padding:3px 7px;border-radius:20px;background:var(--amber2);color:var(--amber);font-weight:500;white-space:nowrap;flex-shrink:0">Svar</div>
+        </div>
+        <div class="email-item" data-proj="gjovik">
+          <div class="edot" style="background:var(--gold)"></div>
+          <div class="emain"><div class="etitle">NorDan AS</div><div class="esub">Bekreft vindusbestilling innen 1. april</div></div>
+          <div style="font-size:10px;padding:3px 7px;border-radius:20px;background:var(--amber2);color:var(--amber);font-weight:500;white-space:nowrap;flex-shrink:0">14 dager</div>
+        </div>
+        <div class="email-item" data-proj="hamar">
+          <div class="edot" style="background:var(--gold)"></div>
+          <div class="emain"><div class="etitle">Mona Dahl</div><div class="esub">Bekreftet flisvalg – klar til bestilling</div></div>
+          <div style="font-size:10px;padding:3px 7px;border-radius:20px;background:var(--paper2);color:var(--ink3);font-weight:500;white-space:nowrap;flex-shrink:0">Lest</div>
+        </div>
+        <div class="email-item" data-proj="elverum">
+          <div class="edot" style="background:#7f77dd"></div>
+          <div class="emain"><div class="etitle">Elverum kommune</div><div class="esub">Kontraktutkast – kommentarer vedlagt</div></div>
+          <div style="font-size:10px;padding:3px 7px;border-radius:20px;background:#EEEDFE;color:#534AB7;font-weight:500;white-space:nowrap;flex-shrink:0">Ny</div>
+        </div>
+      </div>
+      <div class="empty-state" id="email-empty" style="margin-top:8px">Ingen e-poster for dette prosjektet.</div>
+
+      <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--paper2)">
+        <div class="card-label" style="margin-bottom:12px">Innkjøp med lang leveringstid</div>
+        <div id="innkjop-list">
+          <div class="irow" data-proj="lillehammer" style="background:var(--red2)">
+            <div style="width:6px;height:6px;border-radius:50%;background:var(--red);flex-shrink:0"></div>
+            <div style="flex:1"><div style="font-size:13px;color:var(--red);font-weight:500">Stålbjelker H400 × 24</div><div style="font-size:11px;color:#7a3030;margin-top:2px">Norsk Stål AS · Bekreft innen 20. mars</div></div>
+            <div style="font-size:11px;font-weight:500;color:var(--red);white-space:nowrap">6 dager</div>
+          </div>
+          <div class="irow" data-proj="gjovik" style="background:var(--amber2)">
+            <div style="width:6px;height:6px;border-radius:50%;background:var(--amber);flex-shrink:0"></div>
+            <div style="flex:1"><div style="font-size:13px;color:var(--amber);font-weight:500">Vinduer 3-lags – 8 stk</div><div style="font-size:11px;color:#7a5000;margin-top:2px">NorDan AS · Bestill innen 1. april</div></div>
+            <div style="font-size:11px;font-weight:500;color:var(--amber);white-space:nowrap">14 dager</div>
+          </div>
+          <div class="irow" data-proj="hamar" style="background:var(--paper);border:1px solid var(--paper3)">
+            <div style="width:6px;height:6px;border-radius:50%;background:var(--teal);flex-shrink:0"></div>
+            <div style="flex:1"><div style="font-size:13px;color:var(--ink);font-weight:500">Baderomsfliser – 34 m²</div><div style="font-size:11px;color:var(--ink3);margin-top:2px">Flislageret · Bestill innen 15. april</div></div>
+            <div style="font-size:11px;font-weight:500;color:var(--teal);white-space:nowrap">29 dager</div>
+          </div>
+          <div class="irow" data-proj="elverum" style="background:#EEEDFE;border:1px solid #AFA9EC">
+            <div style="width:6px;height:6px;border-radius:50%;background:#7f77dd;flex-shrink:0"></div>
+            <div style="flex:1"><div style="font-size:13px;color:#534AB7;font-weight:500">Prefabrikkerte veggelementer</div><div style="font-size:11px;color:#7F77DD;margin-top:2px">Moelven Industrier · Bestill innen 10. april</div></div>
+            <div style="font-size:11px;font-weight:500;color:#534AB7;white-space:nowrap">24 dager</div>
+          </div>
+        </div>
+        <div class="empty-state" id="innkjop-empty">Ingen ventende innkjøp for dette prosjektet.</div>
+      </div>
+    </div>
+
+    <!-- AI-NOTAT -->
+    <div class="card">
+      <div class="card-label">AI-notat i dag</div>
+      <div id="ai-note" style="font-family:'DM Serif Display',serif;font-size:15px;color:var(--ink);line-height:1.75;margin-bottom:20px">
+        «Lillehammer er på kritisk sti – stålbjelkebestillingen haster mest. Kari Haugen venter på svar. Gjøvik nærmer seg overtakelse.»
+      </div>
+      <div style="padding-top:16px;border-top:1px solid var(--paper2)">
+        <div style="font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--ink4);margin-bottom:12px">Foreslåtte handlinger</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div class="action-item" data-proj="lillehammer" onclick="toggleAction(this)">
+            <div class="achk" style="border:1.5px solid var(--paper3)"></div>
+            <div class="atxt">Send ordrebekreftelse til Norsk Stål AS</div>
+            <button class="epost-btn" onclick="event.stopPropagation();openEmailModal('Send ordrebekreftelse til Norsk Stål AS','Norsk Stål AS','Lillehammer')">
+              <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="2.5" width="10" height="7" rx="1.5"/><path d="M1 4l5 3.5L11 4"/></svg>
+              Lag e-post
+            </button>
+          </div>
+          <div class="action-item" data-proj="lillehammer" onclick="toggleAction(this)">
+            <div class="achk" style="border:1.5px solid var(--paper3)"></div>
+            <div class="atxt">Svar Kari Haugen – bekreft benkeplate</div>
+            <button class="epost-btn" onclick="event.stopPropagation();openEmailModal('Svar Kari Haugen – bekreft benkeplate','Kari Haugen','Lillehammer')">
+              <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="2.5" width="10" height="7" rx="1.5"/><path d="M1 4l5 3.5L11 4"/></svg>
+              Lag e-post
+            </button>
+          </div>
+          <div class="action-item" data-proj="lillehammer" onclick="toggleAction(this)">
+            <div class="achk" style="border:1.5px solid var(--paper3)"></div>
+            <div class="atxt">Følg opp arkitekt Strand – tegning 2. etg.</div>
+            <button class="epost-btn" onclick="event.stopPropagation();openEmailModal('Følg opp arkitekt Strand – tegning 2. etg.','Arkitekt Strand','Lillehammer')">
+              <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="2.5" width="10" height="7" rx="1.5"/><path d="M1 4l5 3.5L11 4"/></svg>
+              Lag e-post
+            </button>
+          </div>
+          <div class="action-item" data-proj="gjovik" onclick="toggleAction(this)">
+            <div class="achk" style="border:1.5px solid var(--paper3)"></div>
+            <div class="atxt">Book sluttbefaring med Familie Bergstrom</div>
+            <button class="epost-btn" onclick="event.stopPropagation();openEmailModal('Book sluttbefaring med Familie Bergstrom','Familie Bergstrom','Gjøvik')">
+              <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="2.5" width="10" height="7" rx="1.5"/><path d="M1 4l5 3.5L11 4"/></svg>
+              Lag e-post
+            </button>
+          </div>
+          <div class="action-item" data-proj="gjovik" onclick="toggleAction(this)">
+            <div class="achk" style="border:1.5px solid var(--paper3)"></div>
+            <div class="atxt">Bekreft vindusbestilling til NorDan AS</div>
+            <button class="epost-btn" onclick="event.stopPropagation();openEmailModal('Bekreft vindusbestilling til NorDan AS','NorDan AS','Gjøvik')">
+              <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="2.5" width="10" height="7" rx="1.5"/><path d="M1 4l5 3.5L11 4"/></svg>
+              Lag e-post
+            </button>
+          </div>
+          <div class="action-item" data-proj="hamar" onclick="toggleAction(this)">
+            <div class="achk" style="border:1.5px solid var(--paper3)"></div>
+            <div class="atxt">Bestill baderomsfliser innen 15. april</div>
+            <button class="epost-btn" onclick="event.stopPropagation();openEmailModal('Bestill baderomsfliser innen 15. april','Flislageret','Hamar')">
+              <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="2.5" width="10" height="7" rx="1.5"/><path d="M1 4l5 3.5L11 4"/></svg>
+              Lag e-post
+            </button>
+          </div>
+          <div class="action-item" data-proj="elverum" onclick="toggleAction(this)">
+            <div class="achk" style="border:1.5px solid var(--paper3)"></div>
+            <div class="atxt">Gjennomgå kommentarer fra Elverum kommune</div>
+            <button class="epost-btn" onclick="event.stopPropagation();openEmailModal('Gjennomgå kommentarer fra Elverum kommune','Elverum kommune','Elverum')">
+              <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="2.5" width="10" height="7" rx="1.5"/><path d="M1 4l5 3.5L11 4"/></svg>
+              Lag e-post
+            </button>
+          </div>
+        </div>
+        <div class="empty-state" id="actions-empty">Ingen handlinger for dette prosjektet.</div>
+      </div>
+      <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--paper2)">
+        <div style="font-size:11px;color:var(--ink4);line-height:1.7">
+          Analysert 8 nye e-poster · 0 ubesvarte i går · Neste rapport kl. 07:00 i morgen
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FAKTURA-SEKSJON -->
+  <div class="faktura-section card" style="opacity:0;animation:rise .5s .8s ease forwards;margin-top:20px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div class="card-label" style="margin-bottom:0;flex:1">Ikke fakturert</div>
+      <div id="faktura-varsel" style="display:inline-flex;align-items:center;gap:6px;background:var(--amber2);color:var(--amber);font-size:11px;font-weight:500;padding:4px 10px;border-radius:20px">
+        <div style="width:5px;height:5px;border-radius:50%;background:var(--amber)"></div>
+        <span id="faktura-varsel-tekst">4 poster · kr 178 100 totalt</span>
+      </div>
+    </div>
+
+    <table class="faktura-table">
+      <thead>
+        <tr>
+          <th style="width:40%">Beskrivelse</th>
+          <th>Prosjekt</th>
+          <th>Utført / avtalt</th>
+          <th>Status</th>
+          <th>Beløp eks. mva.</th>
+        </tr>
+      </thead>
+      <tbody>
+
+        <tr data-proj="lillehammer">
+          <td>
+            <span class="ftype ftype-tilvalg">Tilvalg</span>
+            <div class="fname">Ekstra benkeplate 120 cm</div>
+            <div class="fsub">Avtalt 13. mars med Kari Haugen</div>
+          </td>
+          <td><span class="ptag" style="background:#fde0d0;color:#9b2020">Lillehammer</span></td>
+          <td><span style="font-size:12px;color:var(--ink3)">13. mars 2025</span></td>
+          <td><span style="font-size:11px;font-weight:500;color:var(--amber)">Ikke bekreftet</span></td>
+          <td>kr 14 000</td>
+        </tr>
+
+        <tr data-proj="lillehammer">
+          <td>
+            <span class="ftype ftype-timer">Timer</span>
+            <div class="fname">Arbeidstimer uke 10 – grunnmur</div>
+            <div class="fsub">Thomas Olsen · 38,5 timer à kr 895</div>
+          </td>
+          <td><span class="ptag" style="background:#fde0d0;color:#9b2020">Lillehammer</span></td>
+          <td><span style="font-size:12px;color:var(--ink3)">7.–14. mars</span></td>
+          <td><span style="font-size:11px;font-weight:500;color:var(--red)">Klar for faktura</span></td>
+          <td>kr 34 458</td>
+        </tr>
+
+        <tr data-proj="lillehammer">
+          <td>
+            <span class="ftype ftype-material">Materialer</span>
+            <div class="fname">Betong og armering – grunnmur</div>
+            <div class="fsub">Levert og støpt uke 10</div>
+          </td>
+          <td><span class="ptag" style="background:#fde0d0;color:#9b2020">Lillehammer</span></td>
+          <td><span style="font-size:12px;color:var(--ink3)">10. mars 2025</span></td>
+          <td><span style="font-size:11px;font-weight:500;color:var(--red)">Klar for faktura</span></td>
+          <td>kr 52 400</td>
+        </tr>
+
+        <tr data-proj="gjovik">
+          <td>
+            <span class="ftype ftype-tilvalg">Tilvalg</span>
+            <div class="fname">Ekstra downlights stue – 6 stk</div>
+            <div class="fsub">Bekreftet av Familie Bergstrom</div>
+          </td>
+          <td><span class="ptag" style="background:#d0ede7;color:#1a6b5a">Gjøvik</span></td>
+          <td><span style="font-size:12px;color:var(--ink3)">10. mars 2025</span></td>
+          <td><span style="font-size:11px;font-weight:500;color:var(--teal)">Bekreftet</span></td>
+          <td>kr 8 200</td>
+        </tr>
+
+        <tr data-proj="gjovik">
+          <td>
+            <span class="ftype ftype-timer">Timer</span>
+            <div class="fname">Arbeidsimer uke 10 – innvendige</div>
+            <div class="fsub">Flere montører · 52 timer à kr 895</div>
+          </td>
+          <td><span class="ptag" style="background:#d0ede7;color:#1a6b5a">Gjøvik</span></td>
+          <td><span style="font-size:12px;color:var(--ink3)">7.–14. mars</span></td>
+          <td><span style="font-size:11px;font-weight:500;color:var(--red)">Klar for faktura</span></td>
+          <td>kr 46 540</td>
+        </tr>
+
+        <tr data-proj="hamar">
+          <td>
+            <span class="ftype ftype-tilvalg">Tilvalg</span>
+            <div class="fname">Fliser bad – oppgradering</div>
+            <div class="fsub">Bekreftet av Mona Dahl</div>
+          </td>
+          <td><span class="ptag" style="background:#f0d48a;color:#854f0b">Hamar</span></td>
+          <td><span style="font-size:12px;color:var(--ink3)">12. mars 2025</span></td>
+          <td><span style="font-size:11px;font-weight:500;color:var(--teal)">Bekreftet</span></td>
+          <td>kr 22 500</td>
+        </tr>
+
+        <tr data-proj="elverum">
+          <td>
+            <span class="ftype ftype-tilvalg">Tilvalg</span>
+            <div class="fname">Utvidet garasje – 20 m²</div>
+            <div class="fsub">Elverum kommune – ikke bekreftet</div>
+          </td>
+          <td><span class="ptag" style="background:#EEEDFE;color:#534AB7">Elverum</span></td>
+          <td><span style="font-size:12px;color:var(--ink3)">Avventer kontrakt</span></td>
+          <td><span style="font-size:11px;font-weight:500;color:var(--ink3)">Venter</span></td>
+          <td>kr 35 000</td>
+        </tr>
+
+      </tbody>
+    </table>
+
+    <div class="faktura-sum-row">
+      <span class="faktura-sum-label">Totalt ikke fakturert</span>
+      <span class="faktura-sum-amount" id="faktura-total">kr 213 098</span>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-left">Correct Bygg AS · AI-assistert prosjektstyring · Lillehval AS</div>
+    <div class="footer-right">Generert <span id="gen-time"></span></div>
+  </footer>
+
+</div>
+
+<!-- E-POST MODAL -->
+<div class="email-modal-bg" id="email-modal-bg" onclick="closeEmailModal(event)">
+  <div class="email-modal">
+    <div class="email-modal-head">
+      <div>
+        <div class="email-modal-title" id="modal-title">Lag e-post</div>
+        <div class="email-modal-sub" id="modal-sub">AI genererer et utkast basert på konteksten</div>
+      </div>
+      <button class="email-modal-close" onclick="closeEmailModal(null)">&#215;</button>
+    </div>
+    <div class="email-modal-body">
+      <div class="generating-row" id="generating-row">
+        <div class="generating-spinner"></div>
+        <div class="generating-text" id="generating-text">Genererer e-postutkast...</div>
+      </div>
+      <div id="email-fields" style="display:none">
+        <div class="email-field">
+          <label>Til</label>
+          <input type="text" id="email-to" placeholder="mottaker@eksempel.no">
+        </div>
+        <div class="email-field">
+          <label>Emne</label>
+          <input type="text" id="email-subject" placeholder="Emne">
+        </div>
+        <div class="email-field">
+          <label>Melding</label>
+          <textarea class="email-body-area" id="email-body"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="email-modal-foot">
+      <button class="btn-secondary" onclick="closeEmailModal(null)">Avbryt</button>
+      <button class="btn-secondary" id="btn-regenerer" onclick="regenererEpost()" style="display:none">Generer på nytt</button>
+      <button class="btn-primary" id="btn-kopier" onclick="kopierEpost()" style="display:none">Kopier e-post</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const AI_NOTES = {
+  alle: '«Lillehammer er på kritisk sti – stålbjelkebestillingen haster mest. Kari Haugen venter på svar. Gjøvik nærmer seg overtakelse.»',
+  lillehammer: '«Kritisk frist i dag: bestillingen til Norsk Stål AS må bekreftes innen kl. 16. Kari Haugen har ventet to dager – risiko for misnøye øker.»',
+  gjovik: '«Gjøvik er på 71 % og nærmer seg mål. Vindusbestillingen må gjøres innen 1. april. Familie Bergstrom venter svar om sluttbefaring.»',
+  hamar: '«Hamar er i tidlig fase. Kontrollmåling tirsdag. Baderomsfliser bør bestilles innen 15. april for å unngå forsinkelse.»',
+  elverum: '«Elverum er i oppstartsfasen. Elverum kommune har sendt kommentarer til kontrakten – gjennomgå raskt. Veggelementer bør bestilles innen 10. april.»'
+};
+const ALERT_TEXTS = {
+  alle: '1 kritisk frist i dag <span>– Bekreft bestilling til Norsk Stål AS innen kl. 16:00 (Lillehammer)</span>',
+  lillehammer: '1 kritisk frist i dag <span>– Bekreft bestilling til Norsk Stål AS innen kl. 16:00</span>',
+  gjovik: null,
+  hamar: null,
+  elverum: null
+};
+const TOTALS = { alle: 'kr 79 700', lillehammer: 'kr 14 000', gjovik: 'kr 8 200', hamar: 'kr 22 500', elverum: 'kr 35 000' };
+const FAKTURA_SUMMER = {
+  alle: { tekst: '7 poster · kr 213 098 totalt', total: 'kr 213 098' },
+  lillehammer: { tekst: '3 poster · kr 100 858 totalt', total: 'kr 100 858' },
+  gjovik: { tekst: '2 poster · kr 54 740 totalt', total: 'kr 54 740' },
+  hamar: { tekst: '1 post · kr 22 500 totalt', total: 'kr 22 500' },
+  elverum: { tekst: '1 post · kr 35 000 totalt', total: 'kr 35 000' }
+};
+const PROJ_NAMES = { alle: 'Prosjekter i gang nå', lillehammer: 'Lillehammer', gjovik: 'Gjøvik', hamar: 'Hamar', elverum: 'Elverum' };
+
+
+function setFilter(proj, btn) {
+  document.querySelectorAll('.proj-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+
+  document.querySelectorAll('[data-proj]').forEach(el => {
+    el.classList.toggle('hidden', proj !== 'alle' && el.dataset.proj !== proj);
+  });
+
+  document.getElementById('ai-note').textContent = AI_NOTES[proj];
+  document.getElementById('total-amount').textContent = TOTALS[proj];
+  const bigCount = document.getElementById('big-count');
+  const bigLabel = document.getElementById('big-label');
+  if (bigCount) bigCount.innerHTML = proj === 'alle' ? '4<sup>stk</sup>' : '1<sup>stk</sup>';
+  if (bigLabel) bigLabel.textContent = PROJ_NAMES[proj];
+
+  const alertEl = document.getElementById('alert-banner');
+  const alertText = ALERT_TEXTS[proj];
+  if (alertText) {
+    alertEl.classList.remove('hidden');
+    document.getElementById('alert-text').innerHTML = alertText;
+  } else {
+    alertEl.classList.add('hidden');
+  }
+
+  // Update faktura section
+  const fs = FAKTURA_SUMMER[proj];
+  if (fs) {
+    document.getElementById('faktura-varsel-tekst').textContent = fs.tekst;
+    document.getElementById('faktura-total').textContent = fs.total;
+  }
+
+  setTimeout(() => {
+    checkEmpty('.urgent-item', 'haster-empty');
+    checkEmpty('.tilvalg-item', 'tilvalg-empty');
+    checkEmpty('.email-item', 'email-empty');
+    checkEmpty('.irow', 'innkjop-empty');
+    checkEmpty('.action-item', 'actions-empty');
+  }, 30);
+}
+
+function checkEmpty(sel, id) {
+  const anyVisible = Array.from(document.querySelectorAll(sel)).some(el => !el.classList.contains('hidden'));
+  const el = document.getElementById(id);
+  if (el) el.classList.toggle('show', !anyVisible);
+}
+
+function toggleAction(el) {
+  const done = el.dataset.done === 'true';
+  el.dataset.done = done ? 'false' : 'true';
+  const box = el.querySelector('.achk');
+  const txt = el.querySelector('.atxt');
+  if (!done) {
+    box.style.background = 'var(--teal)';
+    box.style.border = '1.5px solid var(--teal)';
+    txt.style.textDecoration = 'line-through';
+    txt.style.color = 'var(--ink3)';
+    setTimeout(() => { el.style.opacity = '.4'; }, 150);
+  } else {
+    box.style.background = '';
+    box.style.border = '1.5px solid var(--paper3)';
+    txt.style.textDecoration = '';
+    txt.style.color = 'var(--ink)';
+    el.style.opacity = '1';
+  }
+}
+
+let currentAction = null;
+let currentMottaker = null;
+let currentProsjekt = null;
+
+const EMAIL_CONTEXT = {
+  'Send ordrebekreftelse til Norsk Stål AS': {
+    to: 'rune.larsen@norskstaal.no',
+    subject: 'Ordrebekreftelse – stålbjelker H400 × 24, Prosjekt Lillehammer',
+    context: 'Vi bekrefter herved bestilling av 24 stk H400-stålbjelker til prosjekt Lillehammer. Leveringsdato 16. mai 2025. Totalt kr 187 400 eks. mva. Betalingsbetingelser 30 dager netto.'
+  },
+  'Svar Kari Haugen – bekreft benkeplate': {
+    to: 'kari.haugen@epost.no',
+    subject: 'Bekreftelse av tilvalg – ekstra benkeplate, Prosjekt Lillehammer',
+    context: 'Kari Haugen ba 13. mars om ekstra benkeplate 120 cm til kr 14 000, og at stikkontakt over komfyr flyttes 20 cm. Tilvalget er bekreftet. Prisen for stikkontaktflytting avklares med elektriker.'
+  },
+  'Følg opp arkitekt Strand – tegning 2. etg.': {
+    to: 'strand@arkitektkontor.no',
+    subject: 'Purring: tegningsrevisjon 2. etasje – Prosjekt Lillehammer',
+    context: 'Venter på tegningsrevisjon for 2. etasje. Isolasjonsarbeidet kan ikke starte før tegningen er mottatt. Thomas Olsen bekreftet dette 14. mars.'
+  },
+  'Book sluttbefaring med Familie Bergstrom': {
+    to: 'bergstrom@epost.no',
+    subject: 'Sluttbefaring – Prosjekt Gjøvik',
+    context: 'Familie Bergstrom ønsket sluttbefaring 28. mars. Prosjektet er på 71 % og nærmer seg ferdigstillelse. Bekreft dato og klokkeslett.'
+  },
+  'Bekreft vindusbestilling til NorDan AS': {
+    to: 'ordre@nordan.no',
+    subject: 'Ordrebekreftelse – vinduer 3-lags × 8 stk, Prosjekt Gjøvik',
+    context: 'Bestilling av 8 stk 3-lags vinduer til Gjøvik-prosjektet. Frist for bestilling 1. april for å sikre leveranse til rett tid.'
+  },
+  'Bestill baderomsfliser innen 15. april': {
+    to: 'ordre@flislageret.no',
+    subject: 'Bestilling – baderomsfliser 34 m², Prosjekt Hamar',
+    context: 'Mona Dahl har bekreftet flisvalget. 34 m² baderomsfliser skal bestilles innen 15. april. Leveranse til byggeplass Hamar.'
+  },
+  'Gjennomgå kommentarer fra Elverum kommune': {
+    to: 'prosjekt@elverum.kommune.no',
+    subject: 'Svar på kommentarer til kontraktutkast – Elverum',
+    context: 'Elverum kommune sendte kommentarer til kontraktutkastet 14. mars. Vi går gjennom disse og sender tilbakemelding.'
+  }
+};
+
+async function openEmailModal(action, mottaker, prosjekt) {
+  currentAction = action;
+  currentMottaker = mottaker;
+  currentProsjekt = prosjekt;
+
+  const bg = document.getElementById('email-modal-bg');
+  document.getElementById('modal-title').textContent = 'Lag e-post';
+  document.getElementById('modal-sub').textContent = 'AI genererer utkast for: ' + action;
+  document.getElementById('generating-row').style.display = 'flex';
+  document.getElementById('email-fields').style.display = 'none';
+  document.getElementById('btn-regenerer').style.display = 'none';
+  document.getElementById('btn-kopier').style.display = 'none';
+  document.getElementById('generating-text').textContent = 'Genererer e-postutkast...';
+  bg.classList.add('open');
+
+  const ctx = EMAIL_CONTEXT[action] || {};
+  document.getElementById('email-to').value = ctx.to || '';
+  document.getElementById('email-subject').value = ctx.subject || '';
+
+  await genererEpost(action, mottaker, prosjekt, ctx.context || '');
+}
+
+async function genererEpost(action, mottaker, prosjekt, ekstraKontekst) {
+  const steps = ['Leser prosjektkontekst...', 'Analyserer e-posthistorikk...', 'Skriver utkast...'];
+  let si = 0;
+  const iv = setInterval(() => {
+    si++;
+    if (si < steps.length) document.getElementById('generating-text').textContent = steps[si];
+  }, 600);
+
+  try {
+    const prompt = `Du er en profesjonell prosjektassistent for Correct Bygg AS i Norge.
+
+Peter trenger å sende en e-post med følgende formål: "${action}"
+Mottaker: ${mottaker}
+Prosjekt: ${prosjekt}
+Kontekst: ${ekstraKontekst}
+
+Skriv en kort, profesjonell e-post på norsk fra Peter i Correct Bygg AS. 
+- Vær konkret og høflig
+- Maks 4-6 setninger i brødteksten
+- Ikke bruk emnefeltet i brødteksten
+- Avslutt med "Med vennlig hilsen\nPeter\nCorrect Bygg AS"
+- Returner KUN e-postteksten, ingen forklaring`;
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    clearInterval(iv);
+    const data = await response.json();
+    const tekst = data.content && data.content[0] ? data.content[0].text : '';
+
+    document.getElementById('email-body').value = tekst;
+    document.getElementById('generating-row').style.display = 'none';
+    document.getElementById('email-fields').style.display = 'block';
+    document.getElementById('btn-regenerer').style.display = 'inline-flex';
+    document.getElementById('btn-kopier').style.display = 'inline-flex';
+
+  } catch(e) {
+    clearInterval(iv);
+    document.getElementById('email-body').value = 'Kunne ikke generere e-post automatisk. Fyll inn manuelt.';
+    document.getElementById('generating-row').style.display = 'none';
+    document.getElementById('email-fields').style.display = 'block';
+    document.getElementById('btn-regenerer').style.display = 'inline-flex';
+    document.getElementById('btn-kopier').style.display = 'inline-flex';
+  }
+}
+
+async function regenererEpost() {
+  document.getElementById('generating-row').style.display = 'flex';
+  document.getElementById('email-fields').style.display = 'none';
+  document.getElementById('btn-regenerer').style.display = 'none';
+  document.getElementById('btn-kopier').style.display = 'none';
+  document.getElementById('generating-text').textContent = 'Genererer nytt utkast...';
+  const ctx = EMAIL_CONTEXT[currentAction] || {};
+  await genererEpost(currentAction, currentMottaker, currentProsjekt, ctx.context || '');
+}
+
+function kopierEpost() {
+  const til = document.getElementById('email-to').value;
+  const emne = document.getElementById('email-subject').value;
+  const body = document.getElementById('email-body').value;
+  const full = 'Til: ' + til + '\nEmne: ' + emne + '\n\n' + body;
+  navigator.clipboard.writeText(full).then(() => {
+    const btn = document.getElementById('btn-kopier');
+    const orig = btn.textContent;
+    btn.textContent = 'Kopiert!';
+    btn.style.background = 'var(--teal)';
+    btn.style.border = 'none';
+    setTimeout(() => { btn.textContent = orig; btn.style.background = ''; btn.style.border = ''; }, 2000);
+  });
+}
+
+function closeEmailModal(e) {
+  if (e && e.target !== document.getElementById('email-modal-bg')) return;
+  document.getElementById('email-modal-bg').classList.remove('open');
+}
+
+function triggerRefresh() {
+  const btn = document.getElementById('refresh-btn');
+  const overlay = document.getElementById('refresh-overlay');
+  const statusEl = document.getElementById('refresh-status');
+  const pill = document.getElementById('update-pill');
+  const lastUpdated = document.getElementById('last-updated');
+  btn.classList.add('spinning');
+  overlay.classList.add('visible');
+  pill.classList.remove('visible');
+  const steps = ['Leser e-poster fra siste time','Analyserer nye meldinger...','Sjekker frister og leveringstider...','Oppdaterer fremdriftsstatus...','Genererer oppsummering...'];
+  let i = 0;
+  const iv = setInterval(() => { i++; if (i < steps.length) statusEl.textContent = steps[i]; }, 420);
+  setTimeout(() => {
+    clearInterval(iv);
+    overlay.classList.remove('visible');
+    btn.classList.remove('spinning');
+    const now = new Date();
+    lastUpdated.textContent = 'Sist oppdatert kl. ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+    pill.classList.add('visible');
+    setTimeout(() => pill.classList.remove('visible'), 4000);
+  }, 2200);
+}
+
+function updateTime() {
+  const now = new Date();
+  const days = ['Søndag','Mandag','Tirsdag','Onsdag','Torsdag','Fredag','Lørdag'];
+  const months = ['januar','februar','mars','april','mai','juni','juli','august','september','oktober','november','desember'];
+  document.getElementById('dato').textContent = days[now.getDay()] + ' ' + now.getDate() + '. ' + months[now.getMonth()];
+  const t = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+  document.getElementById('klokke').textContent = t;
+  document.getElementById('gen-time').textContent = 'kl. ' + t;
+}
+updateTime();
+setInterval(updateTime, 30000);
+
+setTimeout(() => {
+  document.querySelectorAll('.progress-fill').forEach(el => {
+    const w = el.style.width; el.style.width = '0';
+    requestAnimationFrame(() => requestAnimationFrame(() => { el.style.width = w; }));
+  });
+}, 800);
+</script>
+</body>
+</html>
